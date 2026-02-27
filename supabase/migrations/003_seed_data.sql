@@ -1,0 +1,154 @@
+-- ============================================
+-- NUTRISAAS - SEED DATA
+-- Test data for development
+-- ============================================
+
+-- ============================================
+-- IMPORTANT: Create these users via Supabase Auth Dashboard first:
+-- 1. admin@admin.com (password: admin123)
+-- 2. nutri@nutri.com (password: nutri123)
+-- 3. paciente@paciente.com (password: paciente123)
+-- ============================================
+
+-- After creating users in Auth, get their UUIDs and update profiles:
+
+-- Example (replace UUIDs with actual ones from auth.users):
+-- UPDATE profiles SET 
+--   role = 'admin', 
+--   tenant_id = NULL,
+--   name = 'Administrador Master'
+-- WHERE email = 'admin@admin.com';
+
+-- UPDATE profiles SET 
+--   role = 'nutritionist',
+--   tenant_id = id, -- nutritionist's tenant_id is their own id
+--   name = 'Dr. Roberto Santos',
+--   crn = '12345',
+--   nutri_code = 'NUTRI123'
+-- WHERE email = 'nutri@nutri.com';
+
+-- UPDATE profiles SET 
+--   role = 'patient',
+--   tenant_id = (SELECT id FROM profiles WHERE email = 'nutri@nutri.com'),
+--   name = 'Juliana Silva',
+--   linked_nutri_id = (SELECT id FROM profiles WHERE email = 'nutri@nutri.com')
+-- WHERE email = 'paciente@paciente.com';
+
+-- ============================================
+-- SEED: Sample patients for nutritionist
+-- ============================================
+-- INSERT INTO patients (tenant_id, user_id, name, email, weight, height, objective)
+-- SELECT 
+--   (SELECT id FROM tenants WHERE nutritionist_id = (SELECT id FROM profiles WHERE email = 'nutri@nutri.com')),
+--   (SELECT id FROM profiles WHERE email = 'paciente@paciente.com'),
+--   'Juliana Silva',
+--   'paciente@paciente.com',
+--   65.5,
+--   165,
+--   'Emagrecimento saudável'
+-- WHERE EXISTS (SELECT 1 FROM profiles WHERE email = 'nutri@nutri.com');
+
+-- ============================================
+-- SEED: Sample measurements
+-- ============================================
+-- INSERT INTO patient_measurements (patient_id, tenant_id, weight, body_fat, measured_at)
+-- SELECT 
+--   p.id,
+--   p.tenant_id,
+--   65.5,
+--   28.5,
+--   NOW() - INTERVAL '30 days'
+-- FROM patients p
+-- WHERE p.email = 'paciente@paciente.com';
+
+-- INSERT INTO patient_measurements (patient_id, tenant_id, weight, body_fat, measured_at)
+-- SELECT 
+--   p.id,
+--   p.tenant_id,
+--   64.2,
+--   27.1,
+--   NOW() - INTERVAL '15 days'
+-- FROM patients p
+-- WHERE p.email = 'paciente@paciente.com';
+
+-- INSERT INTO patient_measurements (patient_id, tenant_id, weight, body_fat, measured_at)
+-- SELECT 
+--   p.id,
+--   p.tenant_id,
+--   63.0,
+--   25.8,
+--   NOW()
+-- FROM patients p
+-- WHERE p.email = 'paciente@paciente.com';
+
+-- ============================================
+-- SEED: Sample meal plan
+-- ============================================
+-- INSERT INTO meal_plans (tenant_id, patient_id, title, content, generated_by, status, created_by)
+-- SELECT 
+--   p.tenant_id,
+--   p.id,
+--   'Plano de Emagrecimento - Semana 1',
+--   '**Café da Manhã (7h)**
+-- - 1 fatia de pão integral
+-- - 1 ovo mexido
+-- - 1 copo de suco de laranja natural
+-- 
+-- **Lanche da Manhã (10h)**
+-- - 1 maçã
+-- - 10 castanhas
+-- 
+-- **Almoço (12h30)**
+-- - Salada verde à vontade
+-- - 100g de frango grelhado
+-- - 3 colheres de arroz integral
+-- - 2 colheres de feijão
+-- - Legumes cozidos
+-- 
+-- **Lanche da Tarde (16h)**
+-- - 1 iogurte natural
+-- - 1 colher de granola
+-- 
+-- **Jantar (19h)**
+-- - Sopa de legumes
+-- - 100g de peixe grelhado
+-- - Salada verde',
+--   'manual',
+--   'active',
+--   (SELECT id FROM profiles WHERE email = 'nutri@nutri.com')
+-- FROM patients p
+-- WHERE p.email = 'paciente@paciente.com';
+
+-- ============================================
+-- SEED: Sample patient history
+-- ============================================
+-- INSERT INTO patient_history (patient_id, tenant_id, type, title, description)
+-- SELECT 
+--   p.id,
+--   p.tenant_id,
+--   'consultation',
+--   'Primeira Consulta',
+--   'Paciente busca emagrecimento saudável. Peso inicial: 65.5kg. Meta: 58kg em 3 meses.'
+-- FROM patients p
+-- WHERE p.email = 'paciente@paciente.com';
+
+-- ============================================
+-- SEED: Sample AI usage
+-- ============================================
+-- INSERT INTO ai_usage (tenant_id, user_id, user_name, user_role, action, tokens_used, cost)
+-- SELECT 
+--   t.id,
+--   p.id,
+--   p.name,
+--   p.role,
+--   'meal_plan',
+--   1,
+--   0.01
+-- FROM profiles p
+-- JOIN tenants t ON t.nutritionist_id = p.id
+-- WHERE p.email = 'nutri@nutri.com';
+
+-- ============================================
+-- REFRESH MATERIALIZED VIEW
+-- ============================================
+-- REFRESH MATERIALIZED VIEW tenant_usage_summary;

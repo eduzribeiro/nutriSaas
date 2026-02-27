@@ -1,0 +1,10 @@
+// Central export for all services
+export { authService } from './authService';
+export { userService } from './userService';
+export { nutritionistService } from './nutritionistService';
+export { patientService } from './patientService';
+export { aiUsageService } from './aiUsageService';
+export { mealPlanService } from './mealPlanService';
+export { adminService } from './adminService';
+export { aiService } from './aiService';
+export { backupService } from './backupService';
