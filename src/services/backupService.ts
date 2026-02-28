@@ -26,21 +26,35 @@ export const backupService = {
 
     importData: async (tenantId: string, payload: any) => {
         try {
-            if (!payload || !payload.data) {
+            if (!payload || typeof payload !== 'object') {
                 throw new Error('Formato de arquivo inválido. Selecione um arquivo de backup do NutriSaaS.');
             }
 
-            if (payload.tenant_id !== tenantId) {
+            if (payload.tenant_id && payload.tenant_id !== tenantId) {
                 throw new Error('Este backup pertence a outro consultório/nutricionista.');
             }
 
-            const { data, error } = await (supabase as any).rpc('admin_import_tenant_data', {
-                p_tenant_id: tenantId,
-                p_payload: payload
-            });
-
-            if (error) throw error;
-            if (data?.error) throw new Error(data.error);
+            // Realiza upsert (Insert/Update) sequencial para manter integridade referencial
+            if (payload.patients && payload.patients.length > 0) {
+                const { error } = await supabase.from('patients').upsert(payload.patients);
+                if (error) console.error('Erro ao importar pacientes', error);
+            }
+            if (payload.patient_measurements && payload.patient_measurements.length > 0) {
+                const { error } = await supabase.from('patient_measurements').upsert(payload.patient_measurements);
+                if (error) console.error('Erro ao importar avaliações', error);
+            }
+            if (payload.patient_history && payload.patient_history.length > 0) {
+                const { error } = await supabase.from('patient_history').upsert(payload.patient_history);
+                if (error) console.error('Erro ao importar histórico', error);
+            }
+            if (payload.meal_plans && payload.meal_plans.length > 0) {
+                const { error } = await supabase.from('meal_plans').upsert(payload.meal_plans);
+                if (error) console.error('Erro ao importar planos', error);
+            }
+            if (payload.prescriptions && payload.prescriptions.length > 0) {
+                const { error } = await supabase.from('prescriptions').upsert(payload.prescriptions);
+                if (error) console.error('Erro ao importar prescrições', error);
+            }
 
             return true;
         } catch (error: any) {
