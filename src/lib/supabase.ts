@@ -24,6 +24,11 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
         detectSessionInUrl: true,
         storageKey: 'nutrisaas-v2-auth',
         storage: window.localStorage,
+        // Override the lock to bypass the navigator.locks API that crashes on suspended tabs
+        lock: {
+            acquire: async () => true,
+            release: async () => { }
+        }
     },
 });
 
