@@ -22,6 +22,8 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true,
+        storageKey: 'nutrisaas-v2-auth',
+        storage: window.localStorage,
     },
 });
 
