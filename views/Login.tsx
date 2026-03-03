@@ -46,10 +46,13 @@ const Login: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-600 rounded-2xl text-white mb-4 shadow-lg shadow-emerald-200">
-            <Apple size={32} />
+          <div className="flex justify-center items-center mb-4">
+            <img
+              src="/logo.png"
+              alt="Logo NutriSaaS"
+              className="h-24 w-auto drop-shadow-sm"
+            />
           </div>
-          <h2 className="text-3xl font-bold text-slate-900">Bem-vindo de volta</h2>
           <p className="text-slate-500 mt-2">Acesse sua conta para gerenciar sua saúde</p>
         </div>
 
