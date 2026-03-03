@@ -17,6 +17,26 @@ if (!supabaseUrl || !supabaseAnonKey) {
     );
 }
 
+const locks: Record<string, Promise<any>> = {};
+
+const memoryLock = async (name: string, acquireTimeout: number, fn: () => Promise<any>) => {
+    // Wait for the existing lock to finish before taking over
+    if (locks[name]) {
+        try { await locks[name]; } catch (e) { }
+    }
+
+    const executePromise = fn();
+
+    locks[name] = executePromise;
+    try {
+        return await executePromise;
+    } finally {
+        if (locks[name] === executePromise) {
+            delete locks[name];
+        }
+    }
+};
+
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
         autoRefreshToken: true,
@@ -24,8 +44,8 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
         detectSessionInUrl: true,
         storageKey: 'nutrisaas-v2-auth',
         storage: window.localStorage,
-        // Override the lock to bypass the navigator.locks API that crashes on suspended tabs
-        lock: (name: string, acquireTimeout: number, fn: () => Promise<any>) => fn(),
+        // Safe lock to bypass the navigator.locks API without breaking concurrency
+        lock: memoryLock,
     },
 });
 
