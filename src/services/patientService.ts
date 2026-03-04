@@ -8,7 +8,8 @@ class PatientService {
      */
     async getPatients(filters?: FilterOptions): Promise<PaginatedResponse<Patient>> {
         try {
-            const { data: userData } = await supabase.auth.getUser();
+            const { data: { session: _session } } = await supabase.auth.getSession();
+            const userData = { user: _session?.user };
             if (!userData.user) throw new Error('Não autenticado');
 
             let query = supabase
@@ -92,7 +93,8 @@ class PatientService {
     async createPatient(patientData: Omit<Patient, 'id' | 'tenantId' | 'createdAt' | 'updatedAt'>): Promise<Patient> {
         try {
             console.log('PatientService: Criando paciente...', patientData.email);
-            const { data: userData } = await supabase.auth.getUser();
+            const { data: { session: _session } } = await supabase.auth.getSession();
+            const userData = { user: _session?.user };
             if (!userData.user) throw new Error('Não autenticado');
 
             // Get tenant_id from profile
@@ -339,7 +341,8 @@ class PatientService {
             const patient = await this.getPatientById(patientId);
             if (!patient) throw new Error('Paciente não encontrado');
 
-            const { data: userData } = await supabase.auth.getUser();
+            const { data: { session: _session } } = await supabase.auth.getSession();
+            const userData = { user: _session?.user };
 
             const { data, error } = await (supabase
                 .from('prescriptions') as any)

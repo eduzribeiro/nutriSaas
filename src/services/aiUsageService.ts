@@ -8,7 +8,8 @@ class AIUsageService {
      */
     async recordUsage(action: 'meal_plan' | 'recipe' | 'anamnesis' | 'evolution', tokensUsed: number = 1): Promise<AIUsageRecord> {
         try {
-            const { data: userData } = await supabase.auth.getUser();
+            const { data: { session: _session } } = await supabase.auth.getSession();
+            const userData = { user: _session?.user };
             if (!userData.user) throw new Error('Não autenticado');
 
             // Fetch profile to get tenant_id and name
@@ -216,7 +217,8 @@ class AIUsageService {
      */
     async canUseAI(): Promise<{ allowed: boolean; reason?: string; remaining?: number }> {
         try {
-            const { data: userData } = await supabase.auth.getUser();
+            const { data: { session: _session } } = await supabase.auth.getSession();
+            const userData = { user: _session?.user };
             if (!userData.user) return { allowed: false, reason: 'Não autenticado' };
 
             const { data: profile } = await (supabase

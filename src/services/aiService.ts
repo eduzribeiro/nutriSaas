@@ -130,7 +130,8 @@ RETORNE EXATAMENTE O SEGUINTE FORMATO JSON E NADA MAIS (nem markdown \`\`\`json)
             const selected = JSON.parse(responseText);
 
             // 4. Save the generated recipe to the database via safe RPC
-            const { data: authData } = await supabase.auth.getUser();
+            const { data: { session: _session } } = await supabase.auth.getSession();
+            const authData = { user: _session?.user };
             if (!authData.user) throw new Error('Usuário não autenticado');
 
             const { data: profile } = await (supabase.from('profiles') as any)
