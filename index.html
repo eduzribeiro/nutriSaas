@@ -6,6 +6,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NutriSaaS</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            // Overriding emerald with the official NutriSaaS elegant/neutral palette
+            // Base on silver/gray/dark-metallic-green
+            emerald: {
+              50: '#f5f7f6',
+              100: '#e6ebe9',
+              200: '#ced6d3',
+              300: '#aab7b3',
+              400: '#7e908b',
+              500: '#5c6e69',
+              600: '#465450', // Replaces vibrant green with elegant dark sage/slate
+              700: '#3a4642',
+              800: '#303936',
+              900: '#29312f',
+              950: '#151a18',
+            }
+          }
+        }
+      }
+    }
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body {
@@ -15,7 +40,7 @@
 
 </head>
 
-<body class="bg-gray-50">
+<body class="bg-gray-50 text-slate-800">
   <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
 </body>
