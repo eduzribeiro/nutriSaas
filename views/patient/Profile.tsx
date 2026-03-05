@@ -88,9 +88,15 @@ const PatientProfile: React.FC = () => {
     try {
       await updateProfile({
         name: formData.name,
-        phone: formData.phone,
+        // phone removed from update payload
         avatar: avatar || undefined
       });
+
+      if (formData.password) {
+        const { error } = await supabase.auth.updateUser({ password: formData.password });
+        if (error) throw error;
+        setFormData(prev => ({ ...prev, password: '' }));
+      }
 
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
@@ -179,26 +185,14 @@ const PatientProfile: React.FC = () => {
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">WhatsApp / Celular</label>
-                <div className="relative">
-                  <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
-                  <input
-                    type="text"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="(00) 00000-0000"
-                    className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold outline-emerald-500 shadow-inner"
-                  />
-                </div>
-              </div>
-
               <div className="md:col-span-2 pt-6 border-t border-slate-50 space-y-3">
                 <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Alterar Senha de Acesso</label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
                   <input
                     type="password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     placeholder="Nova senha (deixe em branco para não alterar)"
                     className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold outline-emerald-500 shadow-inner"
                   />

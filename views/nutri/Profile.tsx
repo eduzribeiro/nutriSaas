@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import { Camera, Save, Lock, Mail, User, Shield, Image as ImageIcon, Loader2, CheckCircle, Smartphone, DownloadCloud, UploadCloud } from 'lucide-react';
 import { useAuth } from '../../src/context';
 import { authService, backupService } from '../../src/services';
+import { supabase } from '../../src/lib/supabase';
 
 const NutriProfile: React.FC = () => {
   const { user, updateProfile } = useAuth();
@@ -47,6 +48,12 @@ const NutriProfile: React.FC = () => {
         nutriCode: formData.nutriCode,
         avatar: avatar || undefined
       });
+
+      if (formData.password) {
+        const { error } = await supabase.auth.updateUser({ password: formData.password });
+        if (error) throw error;
+        setFormData(prev => ({ ...prev, password: '' }));
+      }
 
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
@@ -222,6 +229,20 @@ const NutriProfile: React.FC = () => {
                   disabled
                   className="w-full p-4 bg-slate-100 border border-slate-200 rounded-2xl font-black text-slate-400 cursor-not-allowed"
                 />
+              </div>
+
+              <div className="md:col-span-2 space-y-3 pt-6 border-t border-slate-50">
+                <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Alterar Senha de Acesso</label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
+                  <input
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    placeholder="Nova senha (deixe em branco para não alterar)"
+                    className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold outline-emerald-500 shadow-inner"
+                  />
+                </div>
               </div>
             </div>
 
