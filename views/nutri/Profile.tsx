@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { Camera, Save, Lock, Mail, User, Shield, Image as ImageIcon, Loader2, CheckCircle, Smartphone, DownloadCloud, UploadCloud } from 'lucide-react';
+import { Camera, Save, Lock, Mail, User, Shield, Image as ImageIcon, Loader2, CheckCircle, Smartphone, DownloadCloud, UploadCloud, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../src/context';
 import { authService, backupService } from '../../src/services';
 import { supabase } from '../../src/lib/supabase';
@@ -11,6 +11,7 @@ const NutriProfile: React.FC = () => {
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
@@ -38,27 +39,45 @@ const NutriProfile: React.FC = () => {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setErrorMsg(null);
     setSuccess(false);
+
+    if (formData.password && formData.password.length < 6) {
+      setErrorMsg('A nova senha deve ter no mínimo 6 caracteres.');
+      return;
+    }
+
+    setLoading(true);
     try {
-      await updateProfile({
-        name: formData.name,
-        phone: formData.phone,
-        crn: formData.crn,
-        nutriCode: formData.nutriCode,
-        avatar: avatar || undefined
-      });
+      const promises: Promise<any>[] = [
+        updateProfile({
+          name: formData.name,
+          phone: formData.phone,
+          crn: formData.crn,
+          nutriCode: formData.nutriCode,
+          avatar: avatar || undefined
+        })
+      ];
 
       if (formData.password) {
-        const { error } = await supabase.auth.updateUser({ password: formData.password });
-        if (error) throw error;
+        promises.push(
+          supabase.auth.updateUser({ password: formData.password }).then(({ error }) => {
+            if (error) throw error;
+            return true;
+          })
+        );
+      }
+
+      await Promise.all(promises);
+
+      if (formData.password) {
         setFormData(prev => ({ ...prev, password: '' }));
       }
 
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (error: any) {
-      alert(error.message || 'Erro ao atualizar perfil');
+      setErrorMsg(error.message || 'Erro ao atualizar perfil');
     } finally {
       setLoading(false);
     }
@@ -247,9 +266,17 @@ const NutriProfile: React.FC = () => {
             </div>
 
             <div className="pt-8 border-t border-slate-50 flex flex-col md:flex-row items-center justify-between gap-6">
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight max-w-[250px]">
-                Ao salvar, seus dados profissionais serão atualizados instantaneamente em todos os documentos emitidos pela plataforma.
-              </p>
+              <div className="flex-1">
+                {errorMsg ? (
+                  <div className="flex items-center gap-2 p-4 bg-red-50 text-red-600 rounded-2xl text-sm font-bold border border-red-100 animate-in slide-in-from-bottom-2">
+                    <AlertCircle size={18} /> {errorMsg}
+                  </div>
+                ) : (
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight max-w-[250px]">
+                    Ao salvar, seus dados profissionais serão atualizados instantaneamente em todos os documentos emitidos pela plataforma.
+                  </p>
+                )}
+              </div>
               <button
                 type="submit"
                 disabled={loading}
