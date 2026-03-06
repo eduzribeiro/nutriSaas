@@ -49,28 +49,18 @@ const NutriProfile: React.FC = () => {
 
     setLoading(true);
     try {
-      const promises: Promise<any>[] = [
-        updateProfile({
-          name: formData.name,
-          phone: formData.phone,
-          crn: formData.crn,
-          nutriCode: formData.nutriCode,
-          avatar: avatar || undefined
-        })
-      ];
+      // Execute sequentially to prevent Supabase lock deadlocks
+      await updateProfile({
+        name: formData.name,
+        phone: formData.phone,
+        crn: formData.crn,
+        nutriCode: formData.nutriCode,
+        avatar: avatar || undefined
+      });
 
       if (formData.password) {
-        promises.push(
-          supabase.auth.updateUser({ password: formData.password }).then(({ error }) => {
-            if (error) throw error;
-            return true;
-          })
-        );
-      }
-
-      await Promise.all(promises);
-
-      if (formData.password) {
+        const { error } = await supabase.auth.updateUser({ password: formData.password });
+        if (error) throw error;
         setFormData(prev => ({ ...prev, password: '' }));
       }
 
