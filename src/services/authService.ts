@@ -291,13 +291,21 @@ class AuthService {
     }
 
     onAuthStateChange(callback: (user: AuthUser | null) => void) {
-        return supabase.auth.onAuthStateChange(async (event, session) => {
-            if (session?.user) {
-                const user = await this.getCurrentUser();
-                callback(user);
-            } else {
-                callback(null);
-            }
+        return supabase.auth.onAuthStateChange((event, session) => {
+            // Run asynchronously to prevent Supabase's memoryLock deadlock
+            // which occurs if a listener calls `getSession` while a lock is still held.
+            setTimeout(async () => {
+                if (session?.user) {
+                    try {
+                        const user = await this.getCurrentUser();
+                        callback(user);
+                    } catch {
+                        callback(null);
+                    }
+                } else {
+                    callback(null);
+                }
+            }, 0);
         });
     }
 }
